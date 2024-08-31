@@ -76,14 +76,15 @@ contract StakeEther {
     //Withdraw function
     function withDraw() external ifUserStaked {
         uint256 userStakedAmount = stakedAmount[msg.sender];
-
+        uint256 gasLimit = 50000;
         uint256 rewards = calculateRewards();
 
         stakedAmount[msg.sender] = 0;
         stakedTime[msg.sender] = 0;
 
         (bool success, ) = payable(msg.sender).call{
-            value: userStakedAmount + rewards
+            value: userStakedAmount + rewards,
+            gas: gasLimit
         }("");
         require(success, "Transfer reverted!");
 
