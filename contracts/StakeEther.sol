@@ -37,27 +37,30 @@ contract StakeEther {
     // Functions
 
     // Function to enable staking of ethers
-    function stakeEther() external payable {
-        require(msg.value > 0, "Staking amount must be more than zero");
+   function stakeEther() external payable {
+    require(msg.value > 0, "Staking amount must be more than zero");
+    require(msg.sender != address(0), "Zero address detected!");
 
-        // If the user already staked ether, calculate and update their rewards before adding new stake
-        // I implemented custom errors here, to save gas and optimize my smart contract
-        if (stakedAmount[msg.sender] > 0) {
-            uint256 currentRewards = calculateRewards();
+    // If the user already staked ether, calculate and update their rewards before adding new stake
+    if (stakedAmount[msg.sender] > 0) {
+        uint256 currentRewards = calculateRewards();
 
-            totalRewards += currentRewards;
+        totalRewards += currentRewards;
 
-            stakedTime[msg.sender] = block.timestamp;
-        } else {
-            stakedTime[msg.sender] = block.timestamp;
-        }
-
-        stakedAmount[msg.sender] += msg.value;
-
-        stakedTime[msg.sender] += block.timestamp;
-
-        emit stakeSucsessful(msg.sender, msg.value, block.timestamp);
+        // Update the staked time to the current block timestamp
+        stakedTime[msg.sender] = block.timestamp;
+    } else {
+        // If it's the first time staking, just set the staked time to the current block timestamp
+        stakedTime[msg.sender] = block.timestamp;
     }
+
+    // Add the staked amount to the user's existing staked balance
+    stakedAmount[msg.sender] += msg.value;
+
+    // Log the staking event
+    emit stakeSucsessful(msg.sender, msg.value, block.timestamp);
+}
+
 
     //View function that calculates our rewards
     function calculateRewards() public view returns (uint256) {
