@@ -16,7 +16,8 @@ contract StakeEther {
         owner = msg.sender;
         rewardRate = _rewardRate;
     }
-    //Our modifiers, i would have used private methods but it didn't occur to me earlier and I have deployed already
+
+    //Our modifiers,
     modifier ifUserStaked() {
         require(stakedAmount[msg.sender] > 0, "You have not staked any Ether.");
         _;
@@ -28,23 +29,27 @@ contract StakeEther {
 
     // Events
     event stakeSucsessful(address indexed user, uint256 amount, uint256 time);
-    event withdrawSuccessful(address indexed user, uint256 userStakedAmount, uint256 rewards);
+    event withdrawSuccessful(
+        address indexed user,
+        uint256 userStakedAmount,
+        uint256 rewards
+    );
 
     // Functions
 
     // Function to enable staking of ethers
     function stakeEther() external payable {
-        require(msg.value > 0 , 'Staking amount must be more than zero');
-        
+        require(msg.value > 0, "Staking amount must be more than zero");
+
         // If the user already staked ether, calculate and update their rewards before adding new stake
-        // I implemented custom errors here if you noticed, to save gas and optimize my smart contract
+        // I implemented custom errors here, to save gas and optimize my smart contract
         if (stakedAmount[msg.sender] > 0) {
             uint256 currentRewards = calculateRewards();
 
             totalRewards += currentRewards;
-            
+
             stakedTime[msg.sender] = block.timestamp;
-        }else {
+        } else {
             stakedTime[msg.sender] = block.timestamp;
         }
 
@@ -53,19 +58,22 @@ contract StakeEther {
         stakedTime[msg.sender] += block.timestamp;
 
         emit stakeSucsessful(msg.sender, msg.value, block.timestamp);
-
     }
+
     //View function that calculates our rewards
     function calculateRewards() public view returns (uint256) {
-        // I decided to implement both of them just to see both of them in action in one contract
+        // rewuire statements
         require(stakedAmount[msg.sender] != 0, "Staked Amount cannot be zero!");
 
         uint256 stakedDuration = block.timestamp - stakedTime[msg.sender];
 
-        uint256 rewards = (stakedAmount[msg.sender] * rewardRate * stakedDuration)/ 1e18;
+        uint256 rewards = (stakedAmount[msg.sender] *
+            rewardRate *
+            stakedDuration) / 1e18;
 
         return rewards;
     }
+
     //Withdraw function
     function withDraw() external ifUserStaked {
         uint256 userStakedAmount = stakedAmount[msg.sender];
@@ -75,21 +83,31 @@ contract StakeEther {
         stakedAmount[msg.sender] = 0;
         stakedTime[msg.sender] = 0;
 
-        (bool success, ) = payable(msg.sender).call{value:userStakedAmount + rewards}('');
-        require(success, 'Transfer reverted!');
+        (bool success, ) = payable(msg.sender).call{
+            value: userStakedAmount + rewards
+        }("");
+        require(success, "Transfer reverted!");
 
         emit withdrawSuccessful(msg.sender, userStakedAmount, rewards);
     }
+
     // Function to withdraw contract balance, only contract owner can call this
     function withdrawContractBalance() external onlyOwner {
-        (bool success, ) = payable(msg.sender).call{value:address(this).balance}('');
-        require(success, "Transfer failed!");   
-    }  
+        uint256 gasLimit = 50000;
+
+        (bool success, ) = payable(msg.sender).call{
+            value: address(this).balance,
+            gas: gasLimit
+        }("");
+        require(success, "Transfer failed!");
+    }
+
     // Function to view balance
-    function viewBalance()  external view returns(uint256) {
-       uint256 userBalance =  address(this).balance;
-       return userBalance;
-    } 
+    function viewBalance() external view returns (uint256) {
+        uint256 userBalance = address(this).balance;
+        return userBalance;
+    }
+
     //fallback to recieve plain Ether without data
     receive() external payable {}
 }
