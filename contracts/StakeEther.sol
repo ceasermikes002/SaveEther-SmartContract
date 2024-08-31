@@ -7,7 +7,6 @@ contract StakeEther {
     mapping(address => uint256) public stakedAmount;
     mapping(address => uint256) public stakedTime;
     uint256 public totalRewards;
-    uint256 public stakingDuration;
     address public owner;
     uint256 public rewardRate;
 
