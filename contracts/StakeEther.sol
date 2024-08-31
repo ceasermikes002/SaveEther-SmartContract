@@ -14,7 +14,7 @@ contract StakeEther {
     //This would be initialized once we deploy our contract and _reward rate would be passed as a parameter when we want to verify and in out deploy script
     constructor(uint256 _rewardRate) {
         owner = msg.sender;
-        rewardRate = _rewardRate;   
+        rewardRate = _rewardRate;
     }
     //Our modifiers, i would have used private methods but it didn't occur to me earlier and I have deployed already
     modifier ifUserStaked() {
