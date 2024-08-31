@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 contract StakeEther {
     //    State variables definition
+    //    Implemented variable packing
     mapping(address => uint256) public stakedAmount;
     mapping(address => uint256) public stakedTime;
     uint256 public totalRewards;
@@ -10,11 +11,12 @@ contract StakeEther {
     address public owner;
     uint256 public rewardRate;
 
+    //This would be initialized once we deploy our contract and _reward rate would be passed as a parameter when we want to verify and in out deploy script
     constructor(uint256 _rewardRate) {
         owner = msg.sender;
         rewardRate = _rewardRate;   
     }
-
+    //Our modifiers, i would have used private methods but it didn't occur to me earlier and I have deployed already
     modifier ifUserStaked() {
         require(stakedAmount[msg.sender] > 0, "You have not staked any Ether.");
         _;
@@ -23,17 +25,19 @@ contract StakeEther {
         require(owner == msg.sender, "You are not the owner!");
         _;
     }
+
     // Events
     event stakeSucsessful(address indexed user, uint256 amount, uint256 time);
     event withdrawSuccessful(address indexed user, uint256 userStakedAmount, uint256 rewards);
 
     // Functions
 
-    // Function to enable staking of ethercls
+    // Function to enable staking of ethers
     function stakeEther() external payable {
         require(msg.value > 0 , 'Staking amount must be more than zero');
         
         // If the user already staked ether, calculate and update their rewards before adding new stake
+        // I implemented custom errors here if you noticed, to save gas and optimize my smart contract
         if (stakedAmount[msg.sender] > 0) {
             uint256 currentRewards = calculateRewards();
 
@@ -53,6 +57,7 @@ contract StakeEther {
     }
     //View function that calculates our rewards
     function calculateRewards() public view returns (uint256) {
+        // I decided to implement both of them just to see both of them in action in one contract
         require(stakedAmount[msg.sender] != 0, "Staked Amount cannot be zero!");
 
         uint256 stakedDuration = block.timestamp - stakedTime[msg.sender];
